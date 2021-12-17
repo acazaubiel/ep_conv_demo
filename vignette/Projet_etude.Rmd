@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
 ```{r importbase}
@@ -32,12 +32,11 @@ Méthode :
 
 * utiliser deux indicateurs démographiques (indépendants de la structure de la population) : espérance de vie des hommes(femmes)  et l'ICF ;
 
-* regarder sur longue période (~ 40 ans), comment ces indicateurs ont évolués par rapport à la moyenne nationale.
+* regarder sur longue période (~ 40 ans), comment ces indicateurs ont évolués par rapport à la moyenne nationale ;
 
+* sur le champ de la France métropolitaine.
 
 ## Indices conjoncturels de fécondité
-
-Sur le champ de la France métropolitaine
 
 ```{r}
 ggplot()+
