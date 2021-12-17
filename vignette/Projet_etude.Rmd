@@ -1,0 +1,17 @@
+---
+title: "Projet d'Etude"
+author: "Arthur Cazaubiel (Psar EP)"
+date: "17/12/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Ceci est un test
+
+```{r}
+2+2
+```
+
