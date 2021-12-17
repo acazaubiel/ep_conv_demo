@@ -1,5 +1,5 @@
 ---
-title: "Projet d'Etude"
+title: "Projet d'étude"
 author: "Arthur Cazaubiel (Psar EP)"
 date: "17/12/2021"
 output: html_document
@@ -9,9 +9,50 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Ceci est un test
+```{r importbase}
+base_icf<-tar_read(donnees_icf_propre)
+base_ev<-tar_read(donnees_ev_propre)
+```
+
+## Introduction
+
+Contexte :
+
+* refonte d'Omphale qui propose une projection de la population locale, notamment en s'appuyant sur des "hypothèses standards". Ces HN consistent à (1) prendre une photo locale d'un sous-jacent démographique ; (2) le faire évoluer parallément à la tendance nationale.
+
+* d'autres projections de population, notamment Eurostat proposent une modélisation de convergence démographique : toutes les disparités locales disparaissent à l'infini pour converger vers une démographie européenne uniforme.
+
+Objectif : 
+
+* objectiver et mesurer une éventuelle convergence démographique à l'échelle départementale en France ;
+
+* offrir un cadre standard à tous les départements pour savoir dans quelle mesure l'hypothèse standard s'applique à eux.
+
+Méthode :
+
+* utiliser deux indicateurs démographiques (indépendants de la structure de la population) : espérance de vie des hommes(femmes)  et l'ICF ;
+
+* regarder sur longue période (~ 40 ans), comment ces indicateurs ont évolués par rapport à la moyenne nationale.
+
+
+## Indices conjoncturels de fécondité
+
+Sur le champ de la France métropolitaine
 
 ```{r}
-2+2
+ggplot()+
+  geom_line(data=base_icf %>% filter(DEP!="99"),
+            aes(x=annee, y=ICF,col=DEP))+
+  geom_line(data=base_icf %>% filter(DEP=="99"),
+            aes(x=annee, y=ICF),col="red")+
+  theme_minimal()+
+  scale_colour_manual(values=c(rep("grey",100),"red"))+
+  theme(legend.position = "none")+
+  labs(title="Indices conjoncturels de fécondité départementaux",
+       subtitle="Champ : France métropolitaine",
+       x="année",
+       y="ICF (/1000 femmes)",
+       caption="En rouge, la moyenne métropolitaine.")
+
 ```
 

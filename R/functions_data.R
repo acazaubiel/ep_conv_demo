@@ -1,4 +1,5 @@
-telechargement_donnees <- function(base,nom_sauvegarde="nom_sauvegarde.RDS") {
+telechargement_donnees <- function(nom_input,nom_sauvegarde="nom_sauvegarde.RDS") {
+  base <- data.table::fread(nom_input,data.table = FALSE)
   assertthat::assert_that("idBank" %in% colnames(base), msg="Il n'y a pas la bonne colonne dans la base")
   base$idBank <- stringr::str_pad(base$idBank,width=9,pad="0",side="left")
   idbank <- paste(base$idBank, collapse="+")
@@ -18,9 +19,10 @@ telechargement_donnees <- function(base,nom_sauvegarde="nom_sauvegarde.RDS") {
     mutate(across(everything(), ~as.numeric(.x))) %>%
     tidyr::pivot_longer(cols=-annee,values_to = "variable",names_to="idBank") %>%
     left_join(base,by="idBank")
-  saveRDS(base_p, nom_sauvegarde)
+  #saveRDS(base_p, nom_sauvegarde)
   file.remove("valeurs_annuelles.csv")
   file.remove("coucou.zip")
+  return(base_p)
 }
 
 
@@ -39,7 +41,7 @@ nettoyage_base_ICF <- function(data) {
 
 
 nettoyage_base_EV <- function(data) {
-  data %>%
+  temp <- data %>%
     filter(annee>=1975) %>%
     mutate(SEXE=case_when(grepl("Hommes",Libellé)~ "H",
                           TRUE ~ "F"),
@@ -53,4 +55,6 @@ nettoyage_base_EV <- function(data) {
     left_join(openxlsx::read.xlsx("data/Libelles_DEP_REG.xlsx"), 
               by="LIBDEP") %>%
     relocate(-EV_H, -EV_F)
+  
+  return(temp)
 }
