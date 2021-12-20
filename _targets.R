@@ -68,30 +68,26 @@ list(
                donnees_ev_enrichie %>%
                  rename("ecart_moyenne"=ecart_moyenne_EV_F),
                starting_year = 1975,
-               ending_year = 1997,
-               vector_breaks=c(-Inf,-0.06/12,-0.03/12,0.03/12,0.06/12,Inf))),
+               ending_year = 1997)),
   tar_target(base_regression_evf_98_21,
              construction_base_regression(
                donnees_ev_enrichie %>%
                  rename("ecart_moyenne"=ecart_moyenne_EV_F),
                starting_year = 1998,
-               ending_year = 2021,
-               vector_breaks=c(-Inf,-0.06/12,-0.03/12,0.03/12,0.06/12,Inf))),
+               ending_year = 2021)),
   ####### ev_h ######
   tar_target(base_regression_evh_75_97,
              construction_base_regression(
                donnees_ev_enrichie %>%
                  rename("ecart_moyenne"=ecart_moyenne_EV_H),
                starting_year = 1975,
-               ending_year = 1997,
-               vector_breaks=c(-Inf,-0.06/12,-0.03/12,0.03/12,0.06/12,Inf))),
+               ending_year = 1997)),
   tar_target(base_regression_evh_98_21,
              construction_base_regression(
                donnees_ev_enrichie %>%
                  rename("ecart_moyenne"=ecart_moyenne_EV_H),
                starting_year = 1998,
-               ending_year = 2021,
-               vector_breaks=c(-Inf,-0.06/12,-0.03/12,0.03/12,0.06/12,Inf))),  
+               ending_year = 2021)),
   ## REALISATION D'UN DOCUMENT D'ETUDE ----
   ### Lecture shapefile =====
   tar_target(
