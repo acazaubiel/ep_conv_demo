@@ -1,37 +1,68 @@
 library(targets)
 library(tarchetypes)
 source("R/functions_data.R")
-tar_option_set(packages=c("tidyverse","assertthat","utils","data.table","rmarkdown","openxlsx"))
+source("R/functions_enrichissement.R")
+source("R/functions_reglineaire.R")
+tar_option_set(packages=c("tidyverse","assertthat","utils",
+                          "data.table","rmarkdown","openxlsx","DT"))
 
 list(
+  ## PREPARATION DES DONNEES ----
+  ##### importation des listes d'idbank ========
   tar_target(
     Liste_IDBANK_EV,
     "data/Liste_IDBANK_EV.csv",
     format = "file"
   ),
   tar_target(
-    donnees_ev,
-    telechargement_donnees(nom_input=Liste_IDBANK_EV,
-                           nom_sauvegarde = "data/EV.RDS")
-  ),
-  tar_target(
-    donnees_ev_propre,
-    nettoyage_base_EV(donnees_ev)
-  ),
-  tar_target(
     Liste_IDBANK_ICF,
     "data/Liste_IDBANK_ICF.csv",
     format = "file"
+  ),
+  ##### téléchargement des données ========
+  tar_target(
+    donnees_ev,
+    telechargement_donnees(nom_input=Liste_IDBANK_EV,
+                           nom_sauvegarde = "data/EV.RDS")
   ),
   tar_target(
     donnees_icf,
     telechargement_donnees(nom_input=Liste_IDBANK_ICF,
                            nom_sauvegarde = "data/ICF.RDS")
   ),
+  ##### nettoyage des données ========
+  tar_target(
+    donnees_ev_propre,
+    nettoyage_base_EV(donnees_ev)
+  ),
   tar_target(
     donnees_icf_propre,
     nettoyage_base_ICF(donnees_icf)
   ),
+  
+  #### enrichissement des données =====
+  tar_target(donnees_ev_enrichie,
+    enrichissement(donnees_ev_propre,c("EV_H","EV_F"))),
+  tar_target(donnees_icf_enrichie,
+    enrichissement(donnees_icf_propre,c("ICF"))),
+  
+  #### MODELISATION ----
+  
+  #### modélisation linéaire simple ====
+  tar_target(base_regression_icf_75_97,
+             construction_base_regression(
+               donnees_icf_enrichie %>%
+                 rename("ecart_moyenne"=ecart_moyenne_ICF),
+               starting_year = 1975,
+               ending_year = 1997)),
+  tar_target(base_regression_icf_98_21,
+             construction_base_regression(
+               donnees_icf_enrichie %>%
+                 rename("ecart_moyenne"=ecart_moyenne_ICF),
+               starting_year = 1998,
+               ending_year = 2021)),
+  
+  ## REALISATION D'UN DOCUMENT D'ETUDE ----
   tar_render(
     name=projet_etude,
     "vignette/Projet_etude.Rmd")

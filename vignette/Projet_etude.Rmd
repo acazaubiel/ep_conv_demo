@@ -10,8 +10,10 @@ knitr::opts_chunk$set(echo = FALSE)
 ```
 
 ```{r importbase}
-base_icf<-tar_read(donnees_icf_propre)
-base_ev<-tar_read(donnees_ev_propre)
+base_icf<-tar_read(donnees_icf_enrichie)
+base_ev<-tar_read(donnees_ev_enrichie)
+base_regression_icf_75_97 <- tar_read(base_regression_icf_75_97)
+
 ```
 
 ## Introduction
@@ -36,14 +38,17 @@ Méthode :
 
 * sur le champ de la France métropolitaine.
 
-## Indices conjoncturels de fécondité
+
+## Indices conjoncturels départementaux de fécondité
+
+A l'échelle départementale, de visu, rien ne semble évident, car des évolutions  importantes sont visibles pour tous les départements (diminution puis augmentation).
 
 ```{r}
 ggplot()+
-  geom_line(data=base_icf %>% filter(DEP!="99"),
-            aes(x=annee, y=ICF,col=DEP))+
-  geom_line(data=base_icf %>% filter(DEP=="99"),
-            aes(x=annee, y=ICF),col="red")+
+  geom_line(data=donnees_icf_enrichie %>% filter(DEP!="99"),
+            aes(x=annee, y=values_ICF,col=DEP))+
+  geom_line(data=donnees_icf_enrichie %>% filter(DEP=="99"),
+            aes(x=annee, y=values_ICF),col="red")+
   theme_minimal()+
   scale_colour_manual(values=c(rep("grey",100),"red"))+
   theme(legend.position = "none")+
@@ -53,5 +58,63 @@ ggplot()+
        y="ICF (/1000 femmes)",
        caption="En rouge, la moyenne métropolitaine.")
 
+```
+
+
+En écart à la moyenne nationale métropolitaine, une éventuelle convergence n'est pas plus explicite.
+
+```{r}
+ggplot()+
+  geom_line(data=donnees_icf_enrichie %>% filter(DEP!="99"),
+            aes(x=annee, y=ecart_moyenne_ICF,col=DEP))+
+  theme_minimal()+
+  scale_colour_manual(values=rep("grey",100))+
+  theme(legend.position = "none")+
+  labs(title="Ecarts à la moyenne des ICF départementaux",
+       subtitle="Champ : France métropolitaine",
+       x="année",
+       y="ICF (/1000 femmes)")
+```
+
+On s'appuie donc sur des mesures de la dispertion : écart-type et interquartile notamment. Néanmoins, les résultats de ces deux mesures ne sont pas forcément compatibles et constants : les écarts interquartiles sont clairement décroissants, mais l'écart-type est croissant depuis quelques années, avec un renversement vers les années 2000. Il est possible que certains "outliers" génèrent ces écarts et il faut travailler sur une vision plus individuelle.
+
+
+```{r}
+ggplot(data=donnees_icf_enrichie %>% filter(DEP=="01"))+
+  geom_line(aes(x=annee, y=100*sd_ICF/mean_ICF))+
+  geom_line(aes(x=annee, y=100*(q_75_ICF-q_25_ICF)/q_50_ICF), col="red")+
+  theme_minimal()+
+  theme(legend.position = "none")+
+  labs(title="Variabilité des ICF départementaux",
+       subtitle="Champ : France métropolitaine",
+       x="année",
+       y="Pourcentage (%)",
+       caption="La tendance générale à la convergence dépend de la mesure.\nCoeff de variation en noir, et différence interquartile /médiane en rouge.")
+```
+
+L'analyse individuelle consiste en la modélisation linéaire suivante :
+
+$$(ICF_{dep,t}- ICF_{Fce,t})= \alpha + \beta t +\epsilon_t $$
+
+Si le coefficient $_beta$ est positif, alors l'écart entre le département et la moyenne française augmente au cours du temps. Pour avoir une estimation de la "vitesse de convergence", on analyse alors le paramètre $\zeta_{DEP}$, défini par : $\zeta_{DEP}=-\frac{\beta}{\overline{(ICF_{dep,t}- ICF_{Fce,t}})}$. Plus $\zeta$ est important, plus l'écart entre les deux séries diminue au cours du temps : on a convergence. Le tableau suivant permet de parcourir les valeurs prises à l'échelle départementale.
+
+```{r,collapse=TRUE}
+DT::datatable(base_regression_icf_75_97 %>%
+                filter(annee==1980) %>%
+                select(DEP, br_convergence,convergence,mean_temporel) %>%
+                unique() %>%
+                arrange(DEP) %>%
+                mutate(convergence=round(convergence, digits=1),
+                       mean_temporel=round(mean_temporel,digits=1)),
+              rownames = FALSE,
+              colnames=c('Dép.'='DEP','Caté. conv'='br_convergence','zeta'='convergence','ecart_moyen'='mean_temporel'))
+```
+```{r}
+ggplot(data=base_regression_icf_75_97 %>%
+                filter(annee==1980) %>%
+                select(DEP, br_convergence,convergence,mean_temporel) %>%
+                unique() %>%
+                arrange(DEP)) +
+  geom_boxplot(aes(convergence))
 ```
 
