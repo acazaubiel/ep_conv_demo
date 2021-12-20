@@ -1,12 +1,12 @@
 
 
 regressons <- function(base) {
-  lm<- summary(lm(ecart_moyenne ~ annee + annee*annee, data=base))
+  lm<- summary(lm(ecart_moyenne ~ annee, data=base))
   return(lm$coefficients)
 }
 construction_base_regression <- function(base,
                                          starting_year=1975,
-                                         ending_year=2020,
+                                         ending_year=Inf,
                                          vector_breaks=c(-Inf,-0.06,-0.03,0.03,0.06,Inf)) {
   base <- base %>%
     filter(annee>=starting_year) %>%
@@ -24,5 +24,8 @@ construction_base_regression <- function(base,
            mean_temporel=mean(ecart_moyenne)) %>%
     ungroup() %>%
     mutate(convergence=-coeff/mean_temporel,
-           br_convergence=cut(convergence,breaks=vector_breaks))
+           br_convergence=cut(convergence,breaks=vector_breaks),
+           cur_conv= case_when(pvalue>0.05 ~ 0,
+                               TRUE ~convergence),
+           br_cur_conv=cut(convergence, breaks=vector_breaks))
 }

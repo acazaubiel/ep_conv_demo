@@ -10,10 +10,17 @@ knitr::opts_chunk$set(echo = FALSE)
 ```
 
 ```{r importbase}
+base_icf_propre<-tar_read(donnees_icf_propre)
+base_ev_propre<-tar_read(donnees_ev_propre)
 base_icf<-tar_read(donnees_icf_enrichie)
 base_ev<-tar_read(donnees_ev_enrichie)
 base_regression_icf_75_97 <- tar_read(base_regression_icf_75_97)
-
+base_regression_icf_98_21 <- tar_read(base_regression_icf_98_21)
+base_regression_evh_75_97 <- tar_read(base_regression_evh_75_97)
+base_regression_evh_98_21 <- tar_read(base_regression_evh_98_21)
+base_regression_evf_75_97 <- tar_read(base_regression_evf_75_97)
+base_regression_evf_98_21 <- tar_read(base_regression_evf_98_21)
+fcemetro_shp <-tar_read(fcemetro_shp)
 ```
 
 ## Introduction
@@ -45,10 +52,10 @@ A l'échelle départementale, de visu, rien ne semble évident, car des évoluti
 
 ```{r}
 ggplot()+
-  geom_line(data=donnees_icf_enrichie %>% filter(DEP!="99"),
-            aes(x=annee, y=values_ICF,col=DEP))+
-  geom_line(data=donnees_icf_enrichie %>% filter(DEP=="99"),
-            aes(x=annee, y=values_ICF),col="red")+
+  geom_line(data=base_icf_propre %>% filter(DEP!="99"),
+            aes(x=annee, y=ICF,col=DEP))+
+  geom_line(data=base_icf_propre %>% filter(DEP=="99"),
+            aes(x=annee, y=ICF),col="red")+
   theme_minimal()+
   scale_colour_manual(values=c(rep("grey",100),"red"))+
   theme(legend.position = "none")+
@@ -96,25 +103,121 @@ L'analyse individuelle consiste en la modélisation linéaire suivante :
 
 $$(ICF_{dep,t}- ICF_{Fce,t})= \alpha + \beta t +\epsilon_t $$
 
-Si le coefficient $_beta$ est positif, alors l'écart entre le département et la moyenne française augmente au cours du temps. Pour avoir une estimation de la "vitesse de convergence", on analyse alors le paramètre $\zeta_{DEP}$, défini par : $\zeta_{DEP}=-\frac{\beta}{\overline{(ICF_{dep,t}- ICF_{Fce,t}})}$. Plus $\zeta$ est important, plus l'écart entre les deux séries diminue au cours du temps : on a convergence. Le tableau suivant permet de parcourir les valeurs prises à l'échelle départementale.
+Si le coefficient $\beta$ est positif, alors l'écart entre le département et la moyenne française augmente au cours du temps. Pour avoir une estimation de la "vitesse de convergence", on analyse alors le paramètre $\rho_{DEP}$, défini par : $\rho_{DEP}=-\frac{\beta}{\overline{(ICF_{dep,t}- ICF_{Fce,t}})}$. Lorsque l'estimation de $\beta$ est non significative, on force $\rho$ à $0$, pour se concentrer sur les valeurs significatives, convergentes ($\rho >0$) ou divergentes ($\rho <0$). Plus $\rho$ est grand, en valeur absolue, plus la vitesse est rapide.
 
-```{r,collapse=TRUE}
-DT::datatable(base_regression_icf_75_97 %>%
-                filter(annee==1980) %>%
-                select(DEP, br_convergence,convergence,mean_temporel) %>%
-                unique() %>%
-                arrange(DEP) %>%
-                mutate(convergence=round(convergence, digits=1),
-                       mean_temporel=round(mean_temporel,digits=1)),
-              rownames = FALSE,
-              colnames=c('Dép.'='DEP','Caté. conv'='br_convergence','zeta'='convergence','ecart_moyen'='mean_temporel'))
-```
 ```{r}
-ggplot(data=base_regression_icf_75_97 %>%
-                filter(annee==1980) %>%
-                select(DEP, br_convergence,convergence,mean_temporel) %>%
-                unique() %>%
-                arrange(DEP)) +
-  geom_boxplot(aes(convergence))
+# DT::datatable(base_regression_icf_75_97 %>%
+#                 filter(annee==1980) %>%
+#                 select(DEP, br_convergence,convergence,mean_temporel) %>%
+#                 unique() %>%
+#                 arrange(DEP) %>%
+#                 mutate(convergence=round(convergence, digits=1),
+#                        mean_temporel=round(mean_temporel,digits=1)),
+#               rownames = FALSE,
+#               colnames=c('Dép.'='DEP','Caté. conv'='br_convergence','rho'='convergence','ecart_moyen'='mean_temporel'))
+
+ggplot(data=base_regression_icf_75_97)+
+  geom_line(aes(x=annee, y=ecart_moyenne,col=DEP))+
+  theme_minimal() +
+  facet_wrap(~br_cur_conv, scales="free_y")+
+  theme(legend.position="none")+
+  geom_hline(aes(yintercept = 0)) +
+  labs(y="Ecart à la moyenne",
+       x="année",
+       title ="Catégorisation des départements selon leur vitesse de convergence.")
+
+
+```
+
+La figure précédente montre clairement que les départements se répartissent assez largement dans les catégories de convergences ou de divergences, notamment sur la période 1975-1997. La carte suivante montre précisement quels départements ont des comportements convergents ou divergents.
+
+```{r}
+
+base_geographique <- right_join(fcemetro_shp,base_regression_icf_75_97 %>%
+                                 filter(annee==1980) %>%
+                                 select(DEP, br_cur_conv),
+                                 by=c("code"="DEP")) #%>%
+  # left_join(base_regression_icf_98_21 %>% filter(annee==2000),
+  #           by=c("code"="DEP"), 
+  #           suffix=c("_97","_21"))
+
+tm_shape(base_geographique)+
+  #tm_polygons(c("br_cur_conv_97","br_cur_conv_21"), palette = "RdYlBu")
+  tm_polygons(c("br_cur_conv"), palette = "RdYlBu")
+```
+
+Il est également possible de construire le même raisonnement sur la période 1998-2021, et d'aboutir à une représentation graphique différente.
+
+```{r}
+
+base_geographique_21 <- right_join(fcemetro_shp,base_regression_icf_98_21 %>%
+                                 filter(annee==2000) %>%
+                                 select(DEP, br_cur_conv),
+                                 by=c("code"="DEP"))
+
+tm_shape(base_geographique_21)+
+  tm_polygons(c("br_cur_conv"), palette = "RdYlBu")
+```
+
+La différence de situation entre les deux périodes temporelles est particulièrement frappante : aucun département en divergence sur la première ne l'est encore sur la seconde ! L'analyse récente sur la région Bretagne est, par exemple, beaucoup plus complexe que sur la première période.
+
+Les mêmes considérations s'appliquent également aux autres composantes démographiques, et notamment, les espérances de vies des hommes et des femmes.
+
+## Les espérances de vie des hommes et des femmes, à la naissance.
+
+```{r}
+ggplot()+
+  geom_line(data=base_ev_propre %>% filter(DEP=="99"),
+            aes(x=annee, y=EV_H),col="blue4")+
+  geom_line(data=base_ev_propre %>% filter(DEP=="99"),
+            aes(x=annee, y=EV_F),col="coral2") +
+theme_minimal()+
+  theme(legend.position = "none")+
+  labs(title="Espérances de vie à la naissance par sexe",
+       subtitle="Champ : France métropolitaine",
+       x="année",
+       y="Espérance de vie")
+
+```
+
+
+En écart à la moyenne nationale métropolitaine, une éventuelle convergence n'est pas plus explicite.
+
+```{r}
+ggplot()+
+  geom_line(data=base_ev %>% filter(DEP!="99"),
+            aes(x=annee, y=ecart_moyenne_EV_F,col=DEP))+
+  theme_minimal()+
+  scale_colour_manual(values=rep("grey",100))+
+  theme(legend.position = "none")+
+  labs(title="Ecarts à la moyenne de l'EVF départemental",
+       subtitle="Champ : France métropolitaine",
+       x="année",
+       y="Année de vie")
+
+ggplot()+
+  geom_line(data=base_ev %>% filter(DEP!="99"),
+            aes(x=annee, y=ecart_moyenne_EV_H,col=DEP))+
+  theme_minimal()+
+  scale_colour_manual(values=rep("grey",100))+
+  theme(legend.position = "none")+
+  labs(title="Ecarts à la moyenne de l'EVH départemental",
+       subtitle="Champ : France métropolitaine",
+       x="année",
+       y="Année de vie")
+```
+
+Et la catégorisation semble faire état d'une plus grande stabilité du concept d'EV.
+
+```{r}
+ggplot(data=base_regression_evh_75_97) +
+geom_line(aes(x=annee, y=ecart_moyenne,col=DEP))+
+  theme_minimal() +
+  facet_wrap(~br_cur_conv, scales="free_y")+
+  theme(legend.position="none")+
+  geom_hline(aes(yintercept = 0)) +
+  labs(y="Ecart à la moyenne",
+       x="année",
+       title ="Catégorisation des départements selon leur vitesse de convergence.")
 ```
 

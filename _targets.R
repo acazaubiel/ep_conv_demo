@@ -4,7 +4,7 @@ source("R/functions_data.R")
 source("R/functions_enrichissement.R")
 source("R/functions_reglineaire.R")
 tar_option_set(packages=c("tidyverse","assertthat","utils",
-                          "data.table","rmarkdown","openxlsx","DT"))
+                          "data.table","rmarkdown","openxlsx","sf","tmap"))
 
 list(
   ## PREPARATION DES DONNEES ----
@@ -49,6 +49,7 @@ list(
   #### MODELISATION ----
   
   #### modélisation linéaire simple ====
+  ####### icf ######
   tar_target(base_regression_icf_75_97,
              construction_base_regression(
                donnees_icf_enrichie %>%
@@ -61,8 +62,44 @@ list(
                  rename("ecart_moyenne"=ecart_moyenne_ICF),
                starting_year = 1998,
                ending_year = 2021)),
-  
+    ####### ev_f ######
+  tar_target(base_regression_evf_75_97,
+             construction_base_regression(
+               donnees_ev_enrichie %>%
+                 rename("ecart_moyenne"=ecart_moyenne_EV_F),
+               starting_year = 1975,
+               ending_year = 1997,
+               vector_breaks=c(-Inf,-0.06/12,-0.03/12,0.03/12,0.06/12,Inf))),
+  tar_target(base_regression_evf_98_21,
+             construction_base_regression(
+               donnees_ev_enrichie %>%
+                 rename("ecart_moyenne"=ecart_moyenne_EV_F),
+               starting_year = 1998,
+               ending_year = 2021,
+               vector_breaks=c(-Inf,-0.06/12,-0.03/12,0.03/12,0.06/12,Inf))),
+  ####### ev_h ######
+  tar_target(base_regression_evh_75_97,
+             construction_base_regression(
+               donnees_ev_enrichie %>%
+                 rename("ecart_moyenne"=ecart_moyenne_EV_H),
+               starting_year = 1975,
+               ending_year = 1997,
+               vector_breaks=c(-Inf,-0.06/12,-0.03/12,0.03/12,0.06/12,Inf))),
+  tar_target(base_regression_evh_98_21,
+             construction_base_regression(
+               donnees_ev_enrichie %>%
+                 rename("ecart_moyenne"=ecart_moyenne_EV_H),
+               starting_year = 1998,
+               ending_year = 2021,
+               vector_breaks=c(-Inf,-0.06/12,-0.03/12,0.03/12,0.06/12,Inf))),  
   ## REALISATION D'UN DOCUMENT D'ETUDE ----
+  ### Lecture shapefile =====
+  tar_target(
+    fcemetro_shp,
+    sf::st_read("data/shp/dep_francemetro_2021.shp")),
+  
+  
+  ## Compilation =====
   tar_render(
     name=projet_etude,
     "vignette/Projet_etude.Rmd")
