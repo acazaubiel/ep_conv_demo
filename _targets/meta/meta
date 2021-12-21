@@ -22,4 +22,7 @@ regressons|function|ea4d4cb8030dc88e||||||||||||||
 nettoyage_base_EV|function|9291933155ef3674||||||||||||||
 enrichissement|function|6e3b0518ee2e55d4||||||||||||||
 construction_base_regression|function|7eeaee42e562936f||||||||||||||
-projet_etude|stem|97e9405684a64469|46f63d0d4bff8d7c|7858a0231404752a|-783642788|vignette/Projet_etude.html*vignette/Projet_etude.Rmd|t18981.7321156461s|f8b1ad04ec4c040a|4694449|file|vector|||12.093||
+base_regression_icf|stem|7529ea1a3d78a7fd|bacf6f1e7bdab84b|108e280a4cb2b416|1710498384||t18982.4725672838s|3da71b0ae3c56e3e|33122|rds|vector|||5.221||
+base_regression_evf|stem|6264336f05f4834b|21e70df13910a08e|0f9c3cdeb891458a|-771178220||t18982.472571034s|61f4a3f8c773720b|57112|rds|vector|||0.285||
+base_regression_evh|stem|c6f47b6bff57f995|7d4912348146d49e|68220e6e038ab676|-54847880||t18982.4725747841s|e9a9f26506a9d4f2|57084|rds|vector|||0.295||
+projet_etude|stem|00489f06c78c61f8|2d959c967a0dc08a|89a90e54b4fe564e|-783642788|vignette/Projet_etude.html*vignette/Projet_etude.Rmd|t18982.4726495091s|774492077c23aa16|4378251|file|vector|||6.581||

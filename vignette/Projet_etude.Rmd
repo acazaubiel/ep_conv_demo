@@ -14,12 +14,9 @@ base_icf_propre<-tar_read(donnees_icf_propre)
 base_ev_propre<-tar_read(donnees_ev_propre)
 base_icf<-tar_read(donnees_icf_enrichie)
 base_ev<-tar_read(donnees_ev_enrichie)
-base_regression_icf_75_97 <- tar_read(base_regression_icf_75_97)
-base_regression_icf_98_21 <- tar_read(base_regression_icf_98_21)
-base_regression_evh_75_97 <- tar_read(base_regression_evh_75_97)
-base_regression_evh_98_21 <- tar_read(base_regression_evh_98_21)
-base_regression_evf_75_97 <- tar_read(base_regression_evf_75_97)
-base_regression_evf_98_21 <- tar_read(base_regression_evf_98_21)
+base_regression_icf <- tar_read(base_regression_icf)
+base_regression_evh <- tar_read(base_regression_evh)
+base_regression_evf <- tar_read(base_regression_evf)
 fcemetro_shp <-tar_read(fcemetro_shp)
 ```
 
@@ -106,7 +103,7 @@ $$(ICF_{dep,t}- ICF_{Fce,t})= \alpha + \beta t +\epsilon_t $$
 Si le coefficient $\beta$ est positif, alors l'écart entre le département et la moyenne française augmente au cours du temps. Pour avoir une estimation de la "vitesse de convergence", on analyse alors le paramètre $\rho_{DEP}$, défini par : $\rho_{DEP}=-\frac{\beta}{\overline{(ICF_{dep,t}- ICF_{Fce,t}})}$. Lorsque l'estimation de $\beta$ est non significative, on force $\rho$ à $0$, pour se concentrer sur les valeurs significatives, convergentes ($\rho >0$) ou divergentes ($\rho <0$). Plus $\rho$ est grand, en valeur absolue, plus la vitesse est rapide.
 
 ```{r}
-# DT::datatable(base_regression_icf_75_97 %>%
+# DT::datatable(base_regression_icf %>%
 #                 filter(annee==1980) %>%
 #                 select(DEP, br_convergence,convergence,mean_temporel) %>%
 #                 unique() %>%
@@ -116,7 +113,7 @@ Si le coefficient $\beta$ est positif, alors l'écart entre le département et l
 #               rownames = FALSE,
 #               colnames=c('Dép.'='DEP','Caté. conv'='br_convergence','rho'='convergence','ecart_moyen'='mean_temporel'))
 
-ggplot(data=base_regression_icf_75_97)+
+ggplot(data=base_regression_icf)+
   geom_line(aes(x=annee, y=ecart_moyenne,col=DEP))+
   theme_minimal() +
   facet_wrap(~br_cur_conv, scales="free_y")+
@@ -133,7 +130,7 @@ La figure précédente montre clairement que les départements se répartissent 
 
 ```{r}
 
-base_geographique <- right_join(fcemetro_shp,base_regression_icf_75_97 %>%
+base_geographique <- right_join(fcemetro_shp,base_regression_icf %>%
                                  filter(annee==1980) %>%
                                  select(DEP, br_cur_conv),
                                  by=c("code"="DEP")) #%>%
@@ -143,19 +140,6 @@ base_geographique <- right_join(fcemetro_shp,base_regression_icf_75_97 %>%
 
 tm_shape(base_geographique)+
   #tm_polygons(c("br_cur_conv_97","br_cur_conv_21"), palette = "RdYlBu")
-  tm_polygons(c("br_cur_conv"), palette = "RdYlBu")
-```
-
-Il est également possible de construire le même raisonnement sur la période 1998-2021, et d'aboutir à une représentation graphique différente.
-
-```{r}
-
-base_geographique_21 <- right_join(fcemetro_shp,base_regression_icf_98_21 %>%
-                                 filter(annee==2000) %>%
-                                 select(DEP, br_cur_conv),
-                                 by=c("code"="DEP"))
-
-tm_shape(base_geographique_21)+
   tm_polygons(c("br_cur_conv"), palette = "RdYlBu")
 ```
 
@@ -210,7 +194,7 @@ ggplot()+
 Et la catégorisation semble faire état d'une plus grande stabilité du concept d'EV.
 
 ```{r}
-ggplot(data=base_regression_evh_75_97) +
+ggplot(data=base_regression_evh) +
 geom_line(aes(x=annee, y=ecart_moyenne,col=DEP))+
   theme_minimal() +
   facet_wrap(~br_cur_conv, scales="free_y")+
@@ -226,7 +210,7 @@ Et sur une carte, la convergence de l'EVH sur 75-97 :
 
 ```{r}
 
-base_geographique <- right_join(fcemetro_shp,base_regression_evh_75_97 %>%
+base_geographique <- right_join(fcemetro_shp,base_regression_evh %>%
                                  filter(annee==1980) %>%
                                  select(DEP, br_cur_conv),
                                  by=c("code"="DEP"))

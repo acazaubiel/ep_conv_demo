@@ -50,43 +50,25 @@ list(
   
   #### modélisation linéaire simple ====
   ####### icf ######
-  tar_target(base_regression_icf_75_97,
+  tar_target(base_regression_icf,
              construction_base_regression(
                donnees_icf_enrichie %>%
                  rename("ecart_moyenne"=ecart_moyenne_ICF),
                starting_year = 1975,
-               ending_year = 1997)),
-  tar_target(base_regression_icf_98_21,
-             construction_base_regression(
-               donnees_icf_enrichie %>%
-                 rename("ecart_moyenne"=ecart_moyenne_ICF),
-               starting_year = 1998,
                ending_year = 2021)),
     ####### ev_f ######
-  tar_target(base_regression_evf_75_97,
+  tar_target(base_regression_evf,
              construction_base_regression(
                donnees_ev_enrichie %>%
                  rename("ecart_moyenne"=ecart_moyenne_EV_F),
                starting_year = 1975,
-               ending_year = 1997)),
-  tar_target(base_regression_evf_98_21,
-             construction_base_regression(
-               donnees_ev_enrichie %>%
-                 rename("ecart_moyenne"=ecart_moyenne_EV_F),
-               starting_year = 1998,
                ending_year = 2021)),
   ####### ev_h ######
-  tar_target(base_regression_evh_75_97,
+  tar_target(base_regression_evh,
              construction_base_regression(
                donnees_ev_enrichie %>%
                  rename("ecart_moyenne"=ecart_moyenne_EV_H),
                starting_year = 1975,
-               ending_year = 1997)),
-  tar_target(base_regression_evh_98_21,
-             construction_base_regression(
-               donnees_ev_enrichie %>%
-                 rename("ecart_moyenne"=ecart_moyenne_EV_H),
-               starting_year = 1998,
                ending_year = 2021)),
   ## REALISATION D'UN DOCUMENT D'ETUDE ----
   ### Lecture shapefile =====
