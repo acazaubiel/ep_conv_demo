@@ -218,6 +218,22 @@ geom_line(aes(x=annee, y=ecart_moyenne,col=DEP))+
   geom_hline(aes(yintercept = 0)) +
   labs(y="Ecart à la moyenne",
        x="année",
-       title ="Catégorisation des départements selon leur vitesse de convergence.")
+       title ="Catégorisation des départements selon leur vitesse de convergence.",
+       subtitle = "EV_H")
 ```
 
+Et sur une carte, la convergence de l'EVH sur 75-97 : 
+
+```{r}
+
+base_geographique <- right_join(fcemetro_shp,base_regression_evh_75_97 %>%
+                                 filter(annee==1980) %>%
+                                 select(DEP, br_cur_conv),
+                                 by=c("code"="DEP"))
+
+tm_shape(base_geographique)+
+  tm_polygons(c("br_cur_conv"), palette = "RdYlBu")
+```
+
+
+## Tentative d'avoir une vision générale
