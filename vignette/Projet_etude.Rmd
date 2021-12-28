@@ -1,8 +1,10 @@
 ---
-title: "Projet d'étude"
+title: "La convergence démographique des départements français de 1975 à 2020 ?"
 author: "Arthur Cazaubiel (Psar EP)"
 date: "17/12/2021"
-output: html_document
+output: 
+  slidy_presentation :
+    highlight: pygments
 ---
 
 ```{r setup, include=FALSE}
@@ -20,32 +22,37 @@ base_regression_evf <- tar_read(base_regression_evf)
 fcemetro_shp <-tar_read(fcemetro_shp)
 ```
 
-## Introduction
+## Introduction & contexte
 
-Contexte :
+* refonte d'Omphale avec ses "hypothèses standards" (HS) :
+  * prendre une photo locale d'un sous-jacent démographique ; 
+  * le faire évoluer parallément à la tendance nationale
+  * ou différemment, notamment comme Eurostat !
 
-* refonte d'Omphale qui propose une projection de la population locale, notamment en s'appuyant sur des "hypothèses standards". Ces HN consistent à (1) prendre une photo locale d'un sous-jacent démographique ; (2) le faire évoluer parallément à la tendance nationale.
+* Eurostat propose une modélisation alternative :
+  * photographie locale d'un sous-jacent démographique ;
+  * évolution vers la convergence démographique : toutes les disparités locales disparaissent à l'infini => démographie européenne uniforme.
 
-* d'autres projections de population, notamment Eurostat proposent une modélisation de convergence démographique : toutes les disparités locales disparaissent à l'infini pour converger vers une démographie européenne uniforme.
+* Impossible de connaître le futur : comment sera la fécondité en 2070 ? Mais possible de regarder le passé : comment était la fécondité en 1980 ?
 
-Objectif : 
+## Objectifs de l'étude & méthodologie
 
-* objectiver et mesurer une éventuelle convergence démographique à l'échelle départementale en France ;
+Objectifs : 
+
+* objectiver et mesurer une éventuelle convergence démographique ?
 
 * offrir un cadre standard à tous les départements pour savoir dans quelle mesure l'hypothèse standard s'applique à eux.
 
+
 Méthode :
 
-* utiliser deux indicateurs démographiques (indépendants de la structure de la population) : espérance de vie des hommes(femmes)  et l'ICF ;
+* Deux indicateurs démographiques indépendants de la structure de la population : EV et l'ICF ;
 
 * regarder sur longue période (~ 40 ans), comment ces indicateurs ont évolués par rapport à la moyenne nationale ;
-
 * sur le champ de la France métropolitaine.
 
 
 ## Indices conjoncturels départementaux de fécondité
-
-A l'échelle départementale, de visu, rien ne semble évident, car des évolutions  importantes sont visibles pour tous les départements (diminution puis augmentation).
 
 ```{r}
 ggplot()+
@@ -64,8 +71,7 @@ ggplot()+
 
 ```
 
-
-En écart à la moyenne nationale métropolitaine, une éventuelle convergence n'est pas plus explicite.
+---
 
 ```{r}
 ggplot()+
@@ -80,7 +86,7 @@ ggplot()+
        y="ICF (/1000 femmes)")
 ```
 
-On s'appuie donc sur des mesures de la dispertion : écart-type et interquartile notamment. Néanmoins, les résultats de ces deux mesures ne sont pas forcément compatibles et constants : les écarts interquartiles sont clairement décroissants, mais l'écart-type est croissant depuis quelques années, avec un renversement vers les années 2000. Il est possible que certains "outliers" génèrent ces écarts et il faut travailler sur une vision plus individuelle.
+<!-- On s'appuie donc sur des mesures de la dispertion : écart-type et interquartile notamment. Néanmoins, les résultats de ces deux mesures ne sont pas forcément compatibles et constants : les écarts interquartiles sont clairement décroissants, mais l'écart-type est croissant depuis quelques années, avec un renversement vers les années 2000. Il est possible que certains "outliers" génèrent ces écarts et il faut travailler sur une vision plus individuelle.
 
 
 ```{r}
@@ -95,12 +101,34 @@ ggplot(data=donnees_icf_enrichie %>% filter(DEP=="01"))+
        y="Pourcentage (%)",
        caption="La tendance générale à la convergence dépend de la mesure.\nCoeff de variation en noir, et différence interquartile /médiane en rouge.")
 ```
+ -->
 
-L'analyse individuelle consiste en la modélisation linéaire suivante :
+## Analyse statistique
+
+```{r}
+
+ggplot(data=donnees_icf_enrichie %>%
+         filter(DEP!="99"), aes(annee, ecart_moyenne_ICF))+
+  geom_violin(aes(group = cut_interval(annee, length=5)), scale = "width") +
+  theme_minimal()+
+  labs(title="Variabilité des ICF départementaux",
+       subtitle="Champ : France métropolitaine",
+       x="année",
+       y="Ecart à la moyenne")
+```
+ 
+## Analyse individuelle
+
+Modélisation linéaire suivante :
 
 $$(ICF_{dep,t}- ICF_{Fce,t})= \alpha + \beta t +\epsilon_t $$
+<!--
+Si le coefficient $\beta$ est positif, alors l'écart entre le département et la moyenne française augmente au cours du temps. Pour avoir une estimation de la "vitesse de convergence", on analyse alors le paramètre $\rho_{DEP}$, défini par : <-->
+$$\rho_{DEP}=-\frac{\beta}{\overline{(ICF_{dep,t}- ICF_{Fce,t}})}$$
 
-Si le coefficient $\beta$ est positif, alors l'écart entre le département et la moyenne française augmente au cours du temps. Pour avoir une estimation de la "vitesse de convergence", on analyse alors le paramètre $\rho_{DEP}$, défini par : $\rho_{DEP}=-\frac{\beta}{\overline{(ICF_{dep,t}- ICF_{Fce,t}})}$. Lorsque l'estimation de $\beta$ est non significative, on force $\rho$ à $0$, pour se concentrer sur les valeurs significatives, convergentes ($\rho >0$) ou divergentes ($\rho <0$). Plus $\rho$ est grand, en valeur absolue, plus la vitesse est rapide.
+Lorsque l'estimation de $\beta$ est non significative, on force $\rho$ à $0$, pour se concentrer sur les valeurs significatives, convergentes ($\rho >0$) ou divergentes ($\rho <0$). Plus $\rho$ est grand, en valeur absolue, plus la vitesse est rapide.
+
+---
 
 ```{r}
 # DT::datatable(base_regression_icf %>%
@@ -119,14 +147,12 @@ ggplot(data=base_regression_icf)+
   facet_wrap(~br_cur_conv, scales="free_y")+
   theme(legend.position="none")+
   geom_hline(aes(yintercept = 0)) +
-  labs(y="Ecart à la moyenne",
+  labs(y="Ecart à la moyenne de l'ICF",
        x="année",
        title ="Catégorisation des départements selon leur vitesse de convergence.")
-
-
 ```
 
-La figure précédente montre clairement que les départements se répartissent assez largement dans les catégories de convergences ou de divergences, notamment sur la période 1975-1997. La carte suivante montre précisement quels départements ont des comportements convergents ou divergents.
+---
 
 ```{r}
 
@@ -143,7 +169,8 @@ tm_shape(base_geographique)+
   tm_polygons(c("br_cur_conv"), palette = "RdYlBu")
 ```
 
-La différence de situation entre les deux périodes temporelles est particulièrement frappante : aucun département en divergence sur la première ne l'est encore sur la seconde ! L'analyse récente sur la région Bretagne est, par exemple, beaucoup plus complexe que sur la première période.
+
+
 
 Les mêmes considérations s'appliquent également aux autres composantes démographiques, et notamment, les espérances de vies des hommes et des femmes.
 

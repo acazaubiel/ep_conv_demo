@@ -7,7 +7,7 @@ regressons <- function(base) {
 construction_base_regression <- function(base,
                                          starting_year=1975,
                                          ending_year=Inf,
-                                         vector_breaks=c(-Inf,-0.06,-0.03,0.03,0.06,Inf)) {
+                                         vector_breaks=c(-Inf,-0.03,0.03,0.06,Inf)) {
   base <- base %>%
     filter(annee>=starting_year) %>%
     filter(annee<=ending_year) %>%
