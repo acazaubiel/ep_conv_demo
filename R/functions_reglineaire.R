@@ -21,11 +21,13 @@ construction_base_regression <- function(base,
            std=unlist(std)) %>%
     group_by(DEP) %>%
     mutate(sd_temporel=sd(ecart_moyenne),
-           mean_temporel=mean(ecart_moyenne)) %>%
+           mean_temporel=mean(ecart_moyenne*(annee<=1990))) %>%
     ungroup() %>%
     mutate(convergence=-coeff/mean_temporel,
-           br_convergence=cut(convergence,breaks=vector_breaks),
+           br_convergence=cut(convergence,breaks=vector_breaks,
+                              include.lowest = TRUE),
            cur_conv= case_when(pvalue>0.05 ~ 0,
                                TRUE ~convergence),
-           br_cur_conv=cut(convergence, breaks=vector_breaks))
+           br_cur_conv=cut(convergence, breaks=vector_breaks,
+                           include.lowest = TRUE))
 }

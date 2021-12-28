@@ -20,20 +20,28 @@ base_regression_icf <- tar_read(base_regression_icf)
 base_regression_evh <- tar_read(base_regression_evh)
 base_regression_evf <- tar_read(base_regression_evf)
 fcemetro_shp <-tar_read(fcemetro_shp)
+palette_manuelle_4 <- c('#ca0020', '#f7f7f7','#92c5de', '#0571b0')
 ```
 
 ## Introduction & contexte
 
-* refonte d'Omphale avec ses "hypothèses standards" (HS) :
+Projections de population locales à l'occasion de la refonte d'Omphale :
+
   * prendre une photo locale d'un sous-jacent démographique ; 
-  * le faire évoluer parallément à la tendance nationale
-  * ou différemment, notamment comme Eurostat !
+  * faire évoluer ce sous-jacent.
+  
+Différentes possibilités d'évolutions :
 
-* Eurostat propose une modélisation alternative :
-  * photographie locale d'un sous-jacent démographique ;
-  * évolution vers la convergence démographique : toutes les disparités locales disparaissent à l'infini => démographie européenne uniforme.
+  * parallélement à la tendance nationale (hypothèses standards) ;
+  
+  * convergence vers la moyenne nationales (Eurostat : moyenne européenne).
 
-* Impossible de connaître le futur : comment sera la fécondité en 2070 ? Mais possible de regarder le passé : comment était la fécondité en 1980 ?
+Comment savoir quelle hypothèses faire ?
+
+* Impossible de connaître le futur : comment sera la fécondité en 2070 ?
+
+* Mais possible de regarder le passé : comment était la fécondité en 1980 ?
+
 
 ## Objectifs de l'étude & méthodologie
 
@@ -49,6 +57,7 @@ Méthode :
 * Deux indicateurs démographiques indépendants de la structure de la population : EV et l'ICF ;
 
 * regarder sur longue période (~ 40 ans), comment ces indicateurs ont évolués par rapport à la moyenne nationale ;
+
 * sur le champ de la France métropolitaine.
 
 
@@ -124,7 +133,7 @@ Modélisation linéaire suivante :
 $$(ICF_{dep,t}- ICF_{Fce,t})= \alpha + \beta t +\epsilon_t $$
 <!--
 Si le coefficient $\beta$ est positif, alors l'écart entre le département et la moyenne française augmente au cours du temps. Pour avoir une estimation de la "vitesse de convergence", on analyse alors le paramètre $\rho_{DEP}$, défini par : <-->
-$$\rho_{DEP}=-\frac{\beta}{\overline{(ICF_{dep,t}- ICF_{Fce,t}})}$$
+$$\rho_{DEP}=-\frac{\beta}{\overline{(ICF_{dep,t}- ICF_{Fce,t}}_{\phantom{1} t\le 1990})}$$
 
 Lorsque l'estimation de $\beta$ est non significative, on force $\rho$ à $0$, pour se concentrer sur les valeurs significatives, convergentes ($\rho >0$) ou divergentes ($\rho <0$). Plus $\rho$ est grand, en valeur absolue, plus la vitesse est rapide.
 
@@ -165,14 +174,23 @@ base_geographique <- right_join(fcemetro_shp,base_regression_icf %>%
   #           suffix=c("_97","_21"))
 
 tm_shape(base_geographique)+
-  #tm_polygons(c("br_cur_conv_97","br_cur_conv_21"), palette = "RdYlBu")
-  tm_polygons(c("br_cur_conv"), palette = "RdYlBu")
+  tm_polygons(c("br_cur_conv"), palette = palette_manuelle_4,
+              title="convergence des ICF")
 ```
 
+---
 
+```{r}
+ggplot(data=base_regression_icf %>% filter(convergence>0.06))+
+  geom_line(aes(x=annee, y=ecart_moyenne,col=DEP))+
+  theme_minimal() +
+  facet_wrap(~br_cur_conv, scales="free_y")+
+  geom_hline(aes(yintercept = 0)) +
+  labs(y="Ecart à la moyenne de l'ICF",
+       x="année",
+       title ="Catégorisation des départements selon leur vitesse de convergence.")
+```
 
-
-Les mêmes considérations s'appliquent également aux autres composantes démographiques, et notamment, les espérances de vies des hommes et des femmes.
 
 ## Les espérances de vie des hommes et des femmes, à la naissance.
 
@@ -191,7 +209,7 @@ theme_minimal()+
 
 ```
 
-
+<!--
 En écart à la moyenne nationale métropolitaine, une éventuelle convergence n'est pas plus explicite.
 
 ```{r}
@@ -218,6 +236,9 @@ ggplot()+
        y="Année de vie")
 ```
 
+
+-->
+
 Et la catégorisation semble faire état d'une plus grande stabilité du concept d'EV.
 
 ```{r}
@@ -243,7 +264,7 @@ base_geographique <- right_join(fcemetro_shp,base_regression_evh %>%
                                  by=c("code"="DEP"))
 
 tm_shape(base_geographique)+
-  tm_polygons(c("br_cur_conv"), palette = "RdYlBu")
+  tm_polygons(c("br_cur_conv"), palette = palette_manuelle_4)
 ```
 
 
