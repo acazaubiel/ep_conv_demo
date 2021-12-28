@@ -1,10 +1,10 @@
 ---
 title: "La convergence démographique des départements français de 1975 à 2020 ?"
 author: "Arthur Cazaubiel (Psar EP)"
-date: "17/12/2021"
+date: "06/01/2022"
 output: 
   slidy_presentation :
-    highlight: pygments
+    duration: 30
 ---
 
 ```{r setup, include=FALSE}
@@ -34,7 +34,7 @@ Différentes possibilités d'évolutions :
 
   * parallélement à la tendance nationale (hypothèses standards) ;
   
-  * convergence vers la moyenne nationales (Eurostat : moyenne européenne).
+  * convergence vers la moyenne nationale (Eurostat : moyenne européenne).
 
 Comment savoir quelle hypothèses faire ?
 
@@ -165,7 +165,7 @@ ggplot(data=base_regression_icf)+
 
 ```{r}
 
-base_geographique <- right_join(fcemetro_shp,base_regression_icf %>%
+base_geographique_ICF <- right_join(fcemetro_shp,base_regression_icf %>%
                                  filter(annee==1980) %>%
                                  select(DEP, br_cur_conv),
                                  by=c("code"="DEP")) #%>%
@@ -173,22 +173,23 @@ base_geographique <- right_join(fcemetro_shp,base_regression_icf %>%
   #           by=c("code"="DEP"), 
   #           suffix=c("_97","_21"))
 
-tm_shape(base_geographique)+
+carte_ICF <- tm_shape(base_geographique_ICF)+
   tm_polygons(c("br_cur_conv"), palette = palette_manuelle_4,
-              title="convergence des ICF")
+              title="ICF")
+
+carte_ICF
 ```
 
 ---
 
 ```{r}
-ggplot(data=base_regression_icf %>% filter(convergence>0.06))+
+ggplot(data=base_regression_icf %>% filter(DEP %in% c("59","62","02","80","60")))+
   geom_line(aes(x=annee, y=ecart_moyenne,col=DEP))+
   theme_minimal() +
-  facet_wrap(~br_cur_conv, scales="free_y")+
   geom_hline(aes(yintercept = 0)) +
   labs(y="Ecart à la moyenne de l'ICF",
        x="année",
-       title ="Catégorisation des départements selon leur vitesse de convergence.")
+       title ="Départements des HdF.")
 ```
 
 
@@ -238,8 +239,7 @@ ggplot()+
 
 
 -->
-
-Et la catégorisation semble faire état d'une plus grande stabilité du concept d'EV.
+---
 
 ```{r}
 ggplot(data=base_regression_evh) +
@@ -248,24 +248,51 @@ geom_line(aes(x=annee, y=ecart_moyenne,col=DEP))+
   facet_wrap(~br_cur_conv, scales="free_y")+
   theme(legend.position="none")+
   geom_hline(aes(yintercept = 0)) +
-  labs(y="Ecart à la moyenne",
+  labs(y="Ecart à la moyenne (mois)",
        x="année",
        title ="Catégorisation des départements selon leur vitesse de convergence.",
-       subtitle = "EV_H")
+       subtitle = "EV naissance Hommes")
 ```
 
-Et sur une carte, la convergence de l'EVH sur 75-97 : 
+---
 
 ```{r}
 
-base_geographique <- right_join(fcemetro_shp,base_regression_evh %>%
+base_geographique_EVH <- right_join(fcemetro_shp,base_regression_evh %>%
                                  filter(annee==1980) %>%
                                  select(DEP, br_cur_conv),
                                  by=c("code"="DEP"))
 
-tm_shape(base_geographique)+
-  tm_polygons(c("br_cur_conv"), palette = palette_manuelle_4)
+carte_EVH <- tm_shape(base_geographique_EVH)+
+  tm_polygons(c("br_cur_conv"), palette = palette_manuelle_4,title="EVH")
+carte_EVH
 ```
 
 
-## Tentative d'avoir une vision générale
+## Tout ensemble !
+
+```{r}
+base_geographique_EVF <- right_join(fcemetro_shp,base_regression_evf %>%
+                                 filter(annee==1980) %>%
+                                 select(DEP, br_cur_conv),
+                                 by=c("code"="DEP"))
+
+carte_EVF <- tm_shape(base_geographique_EVF)+
+  tm_polygons(c("br_cur_conv"), palette = palette_manuelle_4,title="EVF")
+
+tmap_arrange(carte_EVH,carte_EVF,carte_ICF)
+```
+
+## Pour aller plus loin 
+
+* Analyser les migrations ? Indice conjoncturel de migration
+
+* Comment combiner/"additionner" les approches ?
+
+* Avoir une approche normative ? Distinguer la convergence vers le + de la convergence vers le - ?
+
+* Quels sont les explications aux phénomènes observés : augmentation des migrations qui lissent les spécificités locales ou harmonisation culturelle (tabagisme) ?
+
+* Ne faudrait-il pas travailler en longitudinal : suivi des individus nés dans un département, quelles que soient ses migrations ultérieures ?
+
+* Robustesse de l'analyse : en découpant en 2 périodes de 20 ans, observe-t-on la même conclusion départementale ? (non)
