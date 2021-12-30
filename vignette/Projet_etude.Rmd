@@ -2,9 +2,7 @@
 title: "La convergence démographique des départements français de 1975 à 2020 ?"
 author: "Arthur Cazaubiel (Psar EP)"
 date: "06/01/2022"
-output: 
-  slidy_presentation :
-    duration: 30
+output: ioslides_presentation
 ---
 
 ```{r setup, include=FALSE}
@@ -20,7 +18,9 @@ base_regression_icf <- tar_read(base_regression_icf)
 base_regression_evh <- tar_read(base_regression_evh)
 base_regression_evf <- tar_read(base_regression_evf)
 fcemetro_shp <-tar_read(fcemetro_shp)
-palette_manuelle_4 <- c('#ca0020', '#f7f7f7','#92c5de', '#0571b0')
+palette_manuelle_4 <- c('#ca0020', '#f7f7f7', #'#92c5de',
+'#0571b0')
+palette_manuelle_5s<- c("#a6611a","#1a9641","#d7191c","#2b83ba","#ffffff")
 ```
 
 ## Introduction & contexte
@@ -164,20 +164,15 @@ ggplot(data=base_regression_icf)+
 ---
 
 ```{r}
+carte_ICF3 <- tar_read(carte_ICF_3)
+carte_ICF3
+```
 
-base_geographique_ICF <- right_join(fcemetro_shp,base_regression_icf %>%
-                                 filter(annee==1980) %>%
-                                 select(DEP, br_cur_conv),
-                                 by=c("code"="DEP")) #%>%
-  # left_join(base_regression_icf_98_21 %>% filter(annee==2000),
-  #           by=c("code"="DEP"), 
-  #           suffix=c("_97","_21"))
+---
 
-carte_ICF <- tm_shape(base_geographique_ICF)+
-  tm_polygons(c("br_cur_conv"), palette = palette_manuelle_4,
-              title="ICF")
-
-carte_ICF
+```{r}
+carte_ICF5 <- tar_read(carte_ICF_5)
+carte_ICF5
 ```
 
 ---
@@ -257,31 +252,34 @@ geom_line(aes(x=annee, y=ecart_moyenne,col=DEP))+
 ---
 
 ```{r}
+carte_EVH3 <- tar_read(carte_EVH_3)
+carte_EVH5 <- tar_read(carte_EVH_5)
 
-base_geographique_EVH <- right_join(fcemetro_shp,base_regression_evh %>%
-                                 filter(annee==1980) %>%
-                                 select(DEP, br_cur_conv),
-                                 by=c("code"="DEP"))
+carte_EVH3
+```
 
-carte_EVH <- tm_shape(base_geographique_EVH)+
-  tm_polygons(c("br_cur_conv"), palette = palette_manuelle_4,title="EVH")
-carte_EVH
+---
+
+```{r}
+carte_EVH5
 ```
 
 
 ## Tout ensemble !
 
 ```{r}
-base_geographique_EVF <- right_join(fcemetro_shp,base_regression_evf %>%
-                                 filter(annee==1980) %>%
-                                 select(DEP, br_cur_conv),
-                                 by=c("code"="DEP"))
+carte_EVF3 <- tar_read(carte_EVF_3)
+carte_EVF5 <- tar_read(carte_EVF_5)
 
-carte_EVF <- tm_shape(base_geographique_EVF)+
-  tm_polygons(c("br_cur_conv"), palette = palette_manuelle_4,title="EVF")
-
-tmap_arrange(carte_EVH,carte_EVF,carte_ICF)
+tmap_arrange(carte_EVH3,carte_EVF3,carte_ICF3)
 ```
+
+---
+
+```{r}
+tmap_arrange(carte_EVH5,carte_EVF5,carte_ICF5)
+```
+
 
 ## Pour aller plus loin 
 
@@ -289,10 +287,8 @@ tmap_arrange(carte_EVH,carte_EVF,carte_ICF)
 
 * Comment combiner/"additionner" les approches ?
 
-* Avoir une approche normative ? Distinguer la convergence vers le + de la convergence vers le - ?
-
 * Quels sont les explications aux phénomènes observés : augmentation des migrations qui lissent les spécificités locales ou harmonisation culturelle (tabagisme) ?
 
-* Ne faudrait-il pas travailler en longitudinal : suivi des individus nés dans un département, quelles que soient ses migrations ultérieures ?
+* Travailler en longitudinal : suivi des individus nés dans un département, quelles que soient ses migrations ultérieures ?
 
 * Robustesse de l'analyse : en découpant en 2 périodes de 20 ans, observe-t-on la même conclusion départementale ? (non)

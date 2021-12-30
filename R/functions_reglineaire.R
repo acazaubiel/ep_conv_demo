@@ -7,7 +7,7 @@ regressons <- function(base) {
 construction_base_regression <- function(base,
                                          starting_year=1975,
                                          ending_year=Inf,
-                                         vector_breaks=c(-Inf,-0.03,0.03,0.06,Inf)) {
+                                         vector_breaks=c(-Inf,-0.03,0.03,Inf)) {
   base <- base %>%
     filter(annee>=starting_year) %>%
     filter(annee<=ending_year) %>%
@@ -28,6 +28,6 @@ construction_base_regression <- function(base,
                               include.lowest = TRUE),
            cur_conv= case_when(pvalue>0.05 ~ 0,
                                TRUE ~convergence),
-           br_cur_conv=cut(convergence, breaks=vector_breaks,
+           br_cur_conv=cut(cur_conv, breaks=vector_breaks,
                            include.lowest = TRUE))
 }
