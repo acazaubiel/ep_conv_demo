@@ -1,8 +1,8 @@
 ---
-title: "Projet d'étude"
+title: "La convergence démographique des départements français de 1975 à 2020 ?"
 author: "Arthur Cazaubiel (Psar EP)"
-date: "17/12/2021"
-output: html_document
+date: "06/01/2022"
+output: ioslides_presentation
 ---
 
 ```{r setup, include=FALSE}
@@ -14,32 +14,47 @@ base_icf_propre<-tar_read(donnees_icf_propre)
 base_ev_propre<-tar_read(donnees_ev_propre)
 base_icf<-tar_read(donnees_icf_enrichie)
 base_ev<-tar_read(donnees_ev_enrichie)
-base_regression_icf_75_97 <- tar_read(base_regression_icf_75_97)
-base_regression_icf_98_21 <- tar_read(base_regression_icf_98_21)
-base_regression_evh_75_97 <- tar_read(base_regression_evh_75_97)
-base_regression_evh_98_21 <- tar_read(base_regression_evh_98_21)
-base_regression_evf_75_97 <- tar_read(base_regression_evf_75_97)
-base_regression_evf_98_21 <- tar_read(base_regression_evf_98_21)
+base_regression_icf <- tar_read(base_regression_icf)
+base_regression_evh <- tar_read(base_regression_evh)
+base_regression_evf <- tar_read(base_regression_evf)
 fcemetro_shp <-tar_read(fcemetro_shp)
+palette_manuelle_4 <- c('#ca0020', '#f7f7f7', #'#92c5de',
+'#0571b0')
+palette_manuelle_5s<- c("#a6611a","#1a9641","#d7191c","#2b83ba","#ffffff")
 ```
 
-## Introduction
+## Introduction & contexte
 
-Contexte :
+Projections de population locales à l'occasion de la refonte d'Omphale :
 
-* refonte d'Omphale qui propose une projection de la population locale, notamment en s'appuyant sur des "hypothèses standards". Ces HN consistent à (1) prendre une photo locale d'un sous-jacent démographique ; (2) le faire évoluer parallément à la tendance nationale.
+  * prendre une photo locale d'un sous-jacent démographique ; 
+  * faire évoluer ce sous-jacent.
+  
+Différentes possibilités d'évolutions :
 
-* d'autres projections de population, notamment Eurostat proposent une modélisation de convergence démographique : toutes les disparités locales disparaissent à l'infini pour converger vers une démographie européenne uniforme.
+  * parallélement à la tendance nationale (hypothèses standards) ;
+  
+  * convergence vers la moyenne nationale (Eurostat : moyenne européenne).
 
-Objectif : 
+Comment savoir quelle hypothèses faire ?
 
-* objectiver et mesurer une éventuelle convergence démographique à l'échelle départementale en France ;
+* Impossible de connaître le futur : comment sera la fécondité en 2070 ?
+
+* Mais possible de regarder le passé : comment était la fécondité en 1980 ?
+
+
+## Objectifs de l'étude & méthodologie
+
+Objectifs : 
+
+* objectiver et mesurer une éventuelle convergence démographique ?
 
 * offrir un cadre standard à tous les départements pour savoir dans quelle mesure l'hypothèse standard s'applique à eux.
 
+
 Méthode :
 
-* utiliser deux indicateurs démographiques (indépendants de la structure de la population) : espérance de vie des hommes(femmes)  et l'ICF ;
+* Deux indicateurs démographiques indépendants de la structure de la population : EV et l'ICF ;
 
 * regarder sur longue période (~ 40 ans), comment ces indicateurs ont évolués par rapport à la moyenne nationale ;
 
@@ -47,8 +62,6 @@ Méthode :
 
 
 ## Indices conjoncturels départementaux de fécondité
-
-A l'échelle départementale, de visu, rien ne semble évident, car des évolutions  importantes sont visibles pour tous les départements (diminution puis augmentation).
 
 ```{r}
 ggplot()+
@@ -67,8 +80,7 @@ ggplot()+
 
 ```
 
-
-En écart à la moyenne nationale métropolitaine, une éventuelle convergence n'est pas plus explicite.
+---
 
 ```{r}
 ggplot()+
@@ -83,7 +95,7 @@ ggplot()+
        y="ICF (/1000 femmes)")
 ```
 
-On s'appuie donc sur des mesures de la dispertion : écart-type et interquartile notamment. Néanmoins, les résultats de ces deux mesures ne sont pas forcément compatibles et constants : les écarts interquartiles sont clairement décroissants, mais l'écart-type est croissant depuis quelques années, avec un renversement vers les années 2000. Il est possible que certains "outliers" génèrent ces écarts et il faut travailler sur une vision plus individuelle.
+<!-- On s'appuie donc sur des mesures de la dispertion : écart-type et interquartile notamment. Néanmoins, les résultats de ces deux mesures ne sont pas forcément compatibles et constants : les écarts interquartiles sont clairement décroissants, mais l'écart-type est croissant depuis quelques années, avec un renversement vers les années 2000. Il est possible que certains "outliers" génèrent ces écarts et il faut travailler sur une vision plus individuelle.
 
 
 ```{r}
@@ -98,15 +110,37 @@ ggplot(data=donnees_icf_enrichie %>% filter(DEP=="01"))+
        y="Pourcentage (%)",
        caption="La tendance générale à la convergence dépend de la mesure.\nCoeff de variation en noir, et différence interquartile /médiane en rouge.")
 ```
+ -->
 
-L'analyse individuelle consiste en la modélisation linéaire suivante :
-
-$$(ICF_{dep,t}- ICF_{Fce,t})= \alpha + \beta t +\epsilon_t $$
-
-Si le coefficient $\beta$ est positif, alors l'écart entre le département et la moyenne française augmente au cours du temps. Pour avoir une estimation de la "vitesse de convergence", on analyse alors le paramètre $\rho_{DEP}$, défini par : $\rho_{DEP}=-\frac{\beta}{\overline{(ICF_{dep,t}- ICF_{Fce,t}})}$. Lorsque l'estimation de $\beta$ est non significative, on force $\rho$ à $0$, pour se concentrer sur les valeurs significatives, convergentes ($\rho >0$) ou divergentes ($\rho <0$). Plus $\rho$ est grand, en valeur absolue, plus la vitesse est rapide.
+## Analyse statistique
 
 ```{r}
-# DT::datatable(base_regression_icf_75_97 %>%
+
+ggplot(data=donnees_icf_enrichie %>%
+         filter(DEP!="99"), aes(annee, ecart_moyenne_ICF))+
+  geom_violin(aes(group = cut_interval(annee, length=5)), scale = "width") +
+  theme_minimal()+
+  labs(title="Variabilité des ICF départementaux",
+       subtitle="Champ : France métropolitaine",
+       x="année",
+       y="Ecart à la moyenne")
+```
+ 
+## Analyse individuelle
+
+Modélisation linéaire suivante :
+
+$$(ICF_{dep,t}- ICF_{Fce,t})= \alpha + \beta t +\epsilon_t $$
+<!--
+Si le coefficient $\beta$ est positif, alors l'écart entre le département et la moyenne française augmente au cours du temps. Pour avoir une estimation de la "vitesse de convergence", on analyse alors le paramètre $\rho_{DEP}$, défini par : <-->
+$$\rho_{DEP}=-\frac{\beta}{\overline{(ICF_{dep,t}- ICF_{Fce,t}}_{\phantom{1} t\le 1990})}$$
+
+Lorsque l'estimation de $\beta$ est non significative, on force $\rho$ à $0$, pour se concentrer sur les valeurs significatives, convergentes ($\rho >0$) ou divergentes ($\rho <0$). Plus $\rho$ est grand, en valeur absolue, plus la vitesse est rapide.
+
+---
+
+```{r}
+# DT::datatable(base_regression_icf %>%
 #                 filter(annee==1980) %>%
 #                 select(DEP, br_convergence,convergence,mean_temporel) %>%
 #                 unique() %>%
@@ -116,52 +150,43 @@ Si le coefficient $\beta$ est positif, alors l'écart entre le département et l
 #               rownames = FALSE,
 #               colnames=c('Dép.'='DEP','Caté. conv'='br_convergence','rho'='convergence','ecart_moyen'='mean_temporel'))
 
-ggplot(data=base_regression_icf_75_97)+
+ggplot(data=base_regression_icf)+
   geom_line(aes(x=annee, y=ecart_moyenne,col=DEP))+
   theme_minimal() +
   facet_wrap(~br_cur_conv, scales="free_y")+
   theme(legend.position="none")+
   geom_hline(aes(yintercept = 0)) +
-  labs(y="Ecart à la moyenne",
+  labs(y="Ecart à la moyenne de l'ICF",
        x="année",
        title ="Catégorisation des départements selon leur vitesse de convergence.")
-
-
 ```
 
-La figure précédente montre clairement que les départements se répartissent assez largement dans les catégories de convergences ou de divergences, notamment sur la période 1975-1997. La carte suivante montre précisement quels départements ont des comportements convergents ou divergents.
+---
 
 ```{r}
-
-base_geographique <- right_join(fcemetro_shp,base_regression_icf_75_97 %>%
-                                 filter(annee==1980) %>%
-                                 select(DEP, br_cur_conv),
-                                 by=c("code"="DEP")) #%>%
-  # left_join(base_regression_icf_98_21 %>% filter(annee==2000),
-  #           by=c("code"="DEP"), 
-  #           suffix=c("_97","_21"))
-
-tm_shape(base_geographique)+
-  #tm_polygons(c("br_cur_conv_97","br_cur_conv_21"), palette = "RdYlBu")
-  tm_polygons(c("br_cur_conv"), palette = "RdYlBu")
+carte_ICF3 <- tar_read(carte_ICF_3)
+carte_ICF3
 ```
 
-Il est également possible de construire le même raisonnement sur la période 1998-2021, et d'aboutir à une représentation graphique différente.
+---
 
 ```{r}
-
-base_geographique_21 <- right_join(fcemetro_shp,base_regression_icf_98_21 %>%
-                                 filter(annee==2000) %>%
-                                 select(DEP, br_cur_conv),
-                                 by=c("code"="DEP"))
-
-tm_shape(base_geographique_21)+
-  tm_polygons(c("br_cur_conv"), palette = "RdYlBu")
+carte_ICF5 <- tar_read(carte_ICF_5)
+carte_ICF5
 ```
 
-La différence de situation entre les deux périodes temporelles est particulièrement frappante : aucun département en divergence sur la première ne l'est encore sur la seconde ! L'analyse récente sur la région Bretagne est, par exemple, beaucoup plus complexe que sur la première période.
+---
 
-Les mêmes considérations s'appliquent également aux autres composantes démographiques, et notamment, les espérances de vies des hommes et des femmes.
+```{r}
+ggplot(data=base_regression_icf %>% filter(DEP %in% c("59","62","02","80","60")))+
+  geom_line(aes(x=annee, y=ecart_moyenne,col=DEP))+
+  theme_minimal() +
+  geom_hline(aes(yintercept = 0)) +
+  labs(y="Ecart à la moyenne de l'ICF",
+       x="année",
+       title ="Départements des HdF.")
+```
+
 
 ## Les espérances de vie des hommes et des femmes, à la naissance.
 
@@ -180,7 +205,7 @@ theme_minimal()+
 
 ```
 
-
+<!--
 En écart à la moyenne nationale métropolitaine, une éventuelle convergence n'est pas plus explicite.
 
 ```{r}
@@ -207,33 +232,63 @@ ggplot()+
        y="Année de vie")
 ```
 
-Et la catégorisation semble faire état d'une plus grande stabilité du concept d'EV.
+
+-->
+---
 
 ```{r}
-ggplot(data=base_regression_evh_75_97) +
+ggplot(data=base_regression_evh) +
 geom_line(aes(x=annee, y=ecart_moyenne,col=DEP))+
   theme_minimal() +
   facet_wrap(~br_cur_conv, scales="free_y")+
   theme(legend.position="none")+
   geom_hline(aes(yintercept = 0)) +
-  labs(y="Ecart à la moyenne",
+  labs(y="Ecart à la moyenne (mois)",
        x="année",
        title ="Catégorisation des départements selon leur vitesse de convergence.",
-       subtitle = "EV_H")
+       subtitle = "EV naissance Hommes")
 ```
 
-Et sur une carte, la convergence de l'EVH sur 75-97 : 
+---
 
 ```{r}
+carte_EVH3 <- tar_read(carte_EVH_3)
+carte_EVH5 <- tar_read(carte_EVH_5)
 
-base_geographique <- right_join(fcemetro_shp,base_regression_evh_75_97 %>%
-                                 filter(annee==1980) %>%
-                                 select(DEP, br_cur_conv),
-                                 by=c("code"="DEP"))
+carte_EVH3
+```
 
-tm_shape(base_geographique)+
-  tm_polygons(c("br_cur_conv"), palette = "RdYlBu")
+---
+
+```{r}
+carte_EVH5
 ```
 
 
-## Tentative d'avoir une vision générale
+## Tout ensemble !
+
+```{r}
+carte_EVF3 <- tar_read(carte_EVF_3)
+carte_EVF5 <- tar_read(carte_EVF_5)
+
+tmap_arrange(carte_EVH3,carte_EVF3,carte_ICF3)
+```
+
+---
+
+```{r}
+tmap_arrange(carte_EVH5,carte_EVF5,carte_ICF5)
+```
+
+
+## Pour aller plus loin 
+
+* Analyser les migrations ? Indice conjoncturel de migration
+
+* Comment combiner/"additionner" les approches ?
+
+* Quels sont les explications aux phénomènes observés : augmentation des migrations qui lissent les spécificités locales ou harmonisation culturelle (tabagisme) ?
+
+* Travailler en longitudinal : suivi des individus nés dans un département, quelles que soient ses migrations ultérieures ?
+
+* Robustesse de l'analyse : en découpant en 2 périodes de 20 ans, observe-t-on la même conclusion départementale ? (non)
